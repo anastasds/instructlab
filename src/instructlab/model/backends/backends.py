@@ -114,59 +114,87 @@ def check_model_path_exists(model_path: pathlib.Path) -> None:
         raise click.exceptions.Exit(1)
 
 
-def select_backend(
-    cfg: serve_config,
-    backend: Optional[str] = None,
-    model_path: pathlib.Path | None = None,
-    log_file: pathlib.Path | None = None,
+def get_backend_from_values(
+    host,
+    port,
+    model_path,
+    backend_name,
+    chat_template,
+    api_base,
+    gpu_layers,
+    max_ctx_size,
+    vllm_args,
+    max_startup_attempts,
+    model_family,
+    vllm_model_family,
+    log_file,
 ) -> BackendServer:
     # Local
     from .llama_cpp import Server as llama_cpp_server
     from .vllm import Server as vllm_server
 
-    logger.debug("Selecting backend for model %s", model_path)
-
-    model_path = pathlib.Path(model_path or cfg.model_path)
+    model_path = pathlib.Path(model_path)
     check_model_path_exists(model_path)
-    backend_name = backend if backend is not None else cfg.backend
     try:
         backend = get(model_path, backend_name)
     except ValueError as e:
         click.secho(f"Failed to determine backend: {e}", fg="red")
         raise click.exceptions.Exit(1)
 
-    host = cfg.server.host
-    port = cfg.server.port
-    chat_template = cfg.chat_template
     if not chat_template:
         chat_template = CHAT_TEMPLATE_AUTO
 
     if backend == LLAMA_CPP:
         # Instantiate the llama server
         return llama_cpp_server(
-            api_base=cfg.api_base(),
+            api_base=api_base,
             model_path=model_path,
             chat_template=chat_template,
-            gpu_layers=cfg.llama_cpp.gpu_layers,
-            max_ctx_size=cfg.llama_cpp.max_ctx_size,
-            num_threads=None,  # exists only as a flag not a config
-            model_family=cfg.llama_cpp.llm_family,
+            gpu_layers=gpu_layers,
+            max_ctx_size=max_ctx_size,
+            model_family=model_family,
             host=host,
             port=port,
             log_file=log_file,
+            num_threads=None,  # exists only as a flag not a config
         )
     if backend == VLLM:
         # Instantiate the vllm server
         return vllm_server(
-            api_base=cfg.api_base(),
-            model_family=cfg.vllm.llm_family,
+            api_base=api_base,
+            model_family=vllm_model_family,
             model_path=model_path,
             chat_template=chat_template,
-            vllm_args=cfg.vllm.vllm_args,
+            vllm_args=vllm_args,
             host=host,
             port=port,
-            max_startup_attempts=cfg.vllm.max_startup_attempts,
+            max_startup_attempts=max_startup_attempts,
             log_file=log_file,
         )
     click.secho(f"Unknown backend: {backend}", fg="red")
     raise click.exceptions.Exit(1)
+
+
+def select_backend(
+    cfg: serve_config,
+    backend: Optional[str] = None,
+    model_path: pathlib.Path | None = None,
+    log_file: pathlib.Path | None = None,
+) -> BackendServer:
+    logger.debug("Selecting backend for model %s", model_path)
+
+    return get_backend_from_values(
+        host=cfg.server.host,
+        port=cfg.server.port,
+        model_path=model_path if model_path is not None else cfg.model_path,
+        backend_name=backend if backend is not None else cfg.backend,
+        chat_template=cfg.chat_template,
+        api_base=cfg.api_base(),
+        gpu_layers=cfg.llama_cpp.gpu_layers,
+        max_ctx_size=cfg.llama_cpp.max_ctx_size,
+        vllm_args=cfg.vllm.vllm_args,
+        max_startup_attempts=cfg.vllm.max_startup_attempts,
+        vllm_model_family=cfg.vllm.llm_family,
+        model_family=cfg.llama_cpp.llm_family,
+        log_file=log_file,
+    )
