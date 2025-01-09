@@ -580,6 +580,11 @@ def chat_model(
     logs_dir,
     vi_mode,
     visible_overflow,
+    rag_enabled,
+    uri,
+    collection_name,
+    embedding_model_name,
+    top_k,
 ):
     """Runs a chat using the modified model"""
     # pylint: disable=import-outside-toplevel
@@ -707,6 +712,11 @@ def chat_model(
             temperature=temperature,
             backend_type=backend_type,
             params=params,
+            rag_enabled=rag_enabled,
+            uri=uri,
+            collection_name=collection_name,
+            embedding_model_name=embedding_model_name,
+            top_k=top_k,
         )
     except ChatException as exc:
         print(f"{RED}Executing chat failed with: {exc}{RESET}")
@@ -731,6 +741,11 @@ def chat_cli(
     vi_mode,
     visible_overflow,
     params,
+    rag_enabled,
+    uri,
+    collection_name,
+    embedding_model_name,
+    top_k,
 ):
     """Starts a CLI-based chat with the server"""
     client = OpenAI(
@@ -769,11 +784,13 @@ def chat_cli(
     loaded["messages"] = [{"role": "system", "content": sys_prompt}]
 
     # Instantiate retriever if RAG is enabled
-    if ctx.obj.config.chat.rag.enabled:
+    if params["rag"]:
         logger.info("RAG enabled for chat; initializing retriever")
         retriever: DocumentStoreRetriever | None = create_document_retriever(
-            document_store_config=ctx.obj.config.chat.document_store,
-            retriever_config=ctx.obj.config.chat.retriever,
+            document_store_uri=uri,
+            document_store_collection_name=collection_name,
+            top_k=top_k,
+            embedding_model_path=embedding_model_name
         )
     else:
         logger.info("RAG not enabled for chat; skipping retrieval setup")
