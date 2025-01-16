@@ -36,7 +36,8 @@ def test_retriever_is_called_when_present():
     user_query = "test"
     try:
         chatbot.start_prompt(content=user_query, logger=logger)
-    except Exception:
+    except Exception as e:  # pylint: disable=broad-exception-caught
+        logger.info(e)
         retriever.augmented_context.assert_called_with(user_query=user_query)
 
 
