@@ -403,7 +403,7 @@ class ConsoleChatBot:  # pylint: disable=too-many-instance-attributes
         # TODO: what if context is already too long? note that current retriever implementation concatenates all docs
         # TODO: better way to check whether we should perform retrieval?
         if self.retriever is not None:
-            context = self.retriever.augmented_context(content)
+            context = self.retriever.augmented_context(user_query=content)
             self._update_conversation(context, "assistant")
 
         # Update message history and token counters
@@ -744,7 +744,7 @@ def chat_cli(
     rag_enabled,
     uri,
     collection_name,
-    embedding_model_name,
+    embedding_model,
     top_k,
 ):
     """Starts a CLI-based chat with the server"""
@@ -790,7 +790,7 @@ def chat_cli(
             document_store_uri=uri,
             document_store_collection_name=collection_name,
             top_k=top_k,
-            embedding_model_path=embedding_model_name
+            embedding_model_path=embedding_model
         )
     else:
         logger.debug("RAG not enabled for chat; skipping retrieval setup")
