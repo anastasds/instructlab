@@ -784,8 +784,8 @@ def chat_cli(
     loaded["messages"] = [{"role": "system", "content": sys_prompt}]
 
     # Instantiate retriever if RAG is enabled
-    if params["rag"]:
-        logger.info("RAG enabled for chat; initializing retriever")
+    if rag_enabled:
+        logger.debug("RAG enabled for chat; initializing retriever")
         retriever: DocumentStoreRetriever | None = create_document_retriever(
             document_store_uri=uri,
             document_store_collection_name=collection_name,
@@ -793,7 +793,7 @@ def chat_cli(
             embedding_model_path=embedding_model_name
         )
     else:
-        logger.info("RAG not enabled for chat; skipping retrieval setup")
+        logger.debug("RAG not enabled for chat; skipping retrieval setup")
         retriever: DocumentStoreRetriever | None = None
 
     # Session from CLI
