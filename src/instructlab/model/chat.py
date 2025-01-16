@@ -790,7 +790,7 @@ def chat_cli(
             document_store_uri=uri,
             document_store_collection_name=collection_name,
             top_k=top_k,
-            embedding_model_path=embedding_model
+            embedding_model_path=embedding_model,
         )
     else:
         logger.debug("RAG not enabled for chat; skipping retrieval setup")
