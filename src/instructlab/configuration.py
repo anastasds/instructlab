@@ -152,34 +152,6 @@ class _embedding_model(BaseModel):
     )
 
 
-class _retriever(BaseModel):
-    """Class describing configuration of retrieval parameters for RAG."""
-
-    top_k: int = Field(
-        default=DEFAULTS.RETRIEVER_TOP_K,
-        description="The maximum number of documents to retrieve.",
-    )
-    embedding_model: _embedding_model = Field(
-        default_factory=_embedding_model,
-        description="Embedding parameters for retrieval.",
-    )
-
-
-class _chat_rag(BaseModel):
-    """Class containing configuration for retrieval augmented generation"""
-
-    enabled: bool = Field(
-        default=False, description="Enable or disable the RAG pipeline."
-    )
-    retriever: _retriever = Field(
-        default_factory=_retriever, description="Retrieval parameters for RAG."
-    )
-    document_store: _document_store = Field(
-        default_factory=_document_store,
-        description="Document store configuration for RAG.",
-    )
-
-
 class _chat(BaseModel):
     """Class describing configuration of the 'chat' sub-command."""
 
@@ -214,10 +186,6 @@ class _chat(BaseModel):
     temperature: float = Field(
         default=1.0,
         description="Controls the randomness of the model's responses. Lower values make the output more deterministic, while higher values produce more random results.",
-    )
-    rag: _chat_rag = Field(
-        default_factory=_chat_rag,
-        description="Controls retrieval augmented generation parameters.",
     )
 
 
@@ -342,9 +310,33 @@ class _convert(BaseModel):
     )
 
 
+class _retriever(BaseModel):
+    """Class describing configuration of retrieval parameters for RAG."""
+
+    top_k: int = Field(
+        default=DEFAULTS.RETRIEVER_TOP_K,
+        description="The maximum number of documents to retrieve.",
+    )
+
+
 class _rag(BaseModel):
     """Class describing configuration of the 'ilab rag' command."""
 
+    enabled: bool = Field(
+        default=False, description="Flag for enabling RAG functionality."
+    )
+    document_store: _document_store = Field(
+        default_factory=_document_store,
+        description="Document store configuration for RAG.",
+    )
+    embedding_model: _embedding_model = Field(
+        default_factory=_embedding_model,
+        description="Embedding model configuration for RAG",
+    )
+    retriever: _retriever = Field(
+        default_factory=_retriever,
+        description="Retrieval configuration parameters for RAG",
+    )
     convert: _convert = Field(
         default_factory=_convert, description="RAG convert configuration section."
     )
