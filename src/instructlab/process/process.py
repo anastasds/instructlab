@@ -311,6 +311,15 @@ def update_status(local_uuid, status):
 
 
 def list_processes():
+    """
+    Constructs a list of processes and their statuses. Marks processes as ready for removal if necessary
+
+    Args:
+        None
+
+    Returns:
+        None
+    """
     process_registry = load_registry()
     if not process_registry:
         logger.info("No processes currently in the registry.")
