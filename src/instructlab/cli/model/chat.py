@@ -110,7 +110,6 @@ logger = logging.getLogger(__name__)
 )
 @click.option(
     "--document-store-uri",
-    "uri",
     type=click.STRING,
     cls=clickext.ConfigOption,
     config_class="rag",
@@ -161,7 +160,7 @@ def chat(
     serving_log_file,
     temperature,
     rag_enabled,
-    uri,
+    document_store_uri,
     collection_name,
     embedding_model_name,
     top_k,
@@ -183,6 +182,11 @@ def chat(
         model_family,
         serving_log_file,
         temperature,
+        rag_enabled,
+        document_store_uri,
+        collection_name,
+        embedding_model_name,
+        top_k,
         backend_type=ctx.obj.config.serve.server.backend_type,
         host=ctx.obj.config.serve.server.host,
         port=ctx.obj.config.serve.server.port,
@@ -200,9 +204,4 @@ def chat(
         logs_dir=ctx.obj.config.chat.logs_dir,
         vi_mode=ctx.obj.config.chat.vi_mode,
         visible_overflow=ctx.obj.config.chat.visible_overflow,
-        rag_enabled=ctx.obj.rag.enabled,
-        uri=ctx.obj.rag.document_store.uri,
-        collection_name=ctx.obj.rag.document_store.collection_name,
-        embedding_model_name=ctx.obj.rag.embedding_model.path,
-        top_k=ctx.obj.rag.retrieval.top_k,
     )

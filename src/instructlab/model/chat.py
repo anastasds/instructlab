@@ -563,6 +563,11 @@ def chat_model(
     model_family,
     serving_log_file,
     temperature,
+    rag_enabled,
+    document_store_uri,
+    collection_name,
+    embedding_model_name,
+    top_k,
     backend_type,
     host,
     port,
@@ -580,11 +585,6 @@ def chat_model(
     logs_dir,
     vi_mode,
     visible_overflow,
-    rag_enabled,
-    uri,
-    collection_name,
-    embedding_model_name,
-    top_k,
 ):
     """Runs a chat using the modified model"""
     # pylint: disable=import-outside-toplevel
@@ -713,7 +713,7 @@ def chat_model(
             backend_type=backend_type,
             params=params,
             rag_enabled=rag_enabled,
-            uri=uri,
+            document_store_uri=document_store_uri,
             collection_name=collection_name,
             embedding_model_name=embedding_model_name,
             top_k=top_k,
@@ -742,9 +742,9 @@ def chat_cli(
     visible_overflow,
     params,
     rag_enabled,
-    uri,
+    document_store_uri,
     collection_name,
-    embedding_model,
+    embedding_model_name,
     top_k,
 ):
     """Starts a CLI-based chat with the server"""
@@ -787,10 +787,10 @@ def chat_cli(
     if rag_enabled:
         logger.debug("RAG enabled for chat; initializing retriever")
         retriever: DocumentStoreRetriever | None = create_document_retriever(
-            document_store_uri=uri,
+            document_store_uri=document_store_uri,
             document_store_collection_name=collection_name,
             top_k=top_k,
-            embedding_model_path=embedding_model,
+            embedding_model_path=embedding_model_name,
         )
     else:
         logger.debug("RAG not enabled for chat; skipping retrieval setup")
