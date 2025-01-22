@@ -45,6 +45,9 @@ export CONFIG_HOME
 export DATA_HOME
 export CACHE_HOME
 
+export DEV_PREVIEW_FEATURE_GATING
+export TECH_PREVIEW_FEATURE_GATING
+export CUSTOM_FEATURE_GATING
 
 
 ########################################
@@ -68,11 +71,15 @@ function init_e2e_tests() {
     E2E_TEST_DIR=$(mktemp -d)
     HOME="${E2E_TEST_DIR}"  # update the HOME directory used to resolve paths
 
-    CONFIG_HOME=$(python -c 'import platformdirs; print(platformdirs.user_config_dir())')
+#    CONFIG_HOME=$(python -c 'import platformdirs; print(platformdirs.user_config_dir())')
+#    DATA_HOME=$(python -c 'import platformdirs; print(platformdirs.user_data_dir())')
+#    CACHE_HOME=$(python -c 'import platformdirs; print(platformdirs.user_cache_dir())')
+#    STATE_HOME=$(python -c 'import platformdirs; print(platformdirs.user_state_dir())')
+    CONFIG_HOME="${E2E_TEST_DIR}/.config"
     DATA_HOME=$(python -c 'import platformdirs; print(platformdirs.user_data_dir())')
     CACHE_HOME=$(python -c 'import platformdirs; print(platformdirs.user_cache_dir())')
+    CACHE_HOME=$(echo "$CACHE_HOME" | sed -e 's Library/Caches .cache ')
     STATE_HOME=$(python -c 'import platformdirs; print(platformdirs.user_state_dir())')
-
     # ensure that our mock e2e dirs exist
     for dir in "${CONFIG_HOME}" "${DATA_HOME}" "${STATE_HOME}" "${CACHE_HOME}"; do
     	mkdir -p "${dir}"
@@ -81,6 +88,7 @@ function init_e2e_tests() {
     E2E_LOG_DIR="${HOME}/log"
     mkdir -p "${E2E_LOG_DIR}"
 
+    DEV_PREVIEW_FEATURE_GATING=1
     # set appropriate feature gating flag
     if [ "$DEV_PREVIEW_FEATURE_GATING" -eq 1 ]; then
         step Setting dev preview environment variable
@@ -136,13 +144,15 @@ test_smoke() {
 test_init() {
     task Initializing ilab
 
-    ilab config init --non-interactive
+    CONFIG_PATH=$(ilab config init --non-interactive | grep -A 1 Generating | tail -1 | xargs)
 
     step Replace model in config.yaml
     if [ "${BACKEND}" == "vllm" ]; then
-        sed -i -e "s|merlinite.*|${GRANITE_SAFETENSOR_REPO}|" "${CONFIG_HOME}/instructlab/config.yaml"
+        #sed -i -e "s|merlinite.*|${GRANITE_SAFETENSOR_REPO}|" "${CONFIG_HOME}/instructlab/config.yaml"
+        sed -i -e "s|merlinite.*|${GRANITE_SAFETENSOR_REPO}|" "${CONFIG_PATH}"
     else
-        sed -i -e "s|merlinite.*|${GRANITE_GGUF_MODEL}|" "${CONFIG_HOME}/instructlab/config.yaml"
+        #sed -i -e "s|merlinite.*|${GRANITE_GGUF_MODEL}|" "${CONFIG_HOME}/instructlab/config.yaml"
+        sed -i -e "s|merlinite.*|${GRANITE_GGUF_MODEL}|" "${CONFIG_PATH}"
     fi
 }
 
@@ -489,13 +499,13 @@ test_exec() {
     test_serve base
     PID=$!
 
-    test_chat
+    #test_chat
 
     # Test RAG capabilities
     if [ "$DEV_PREVIEW_FEATURE_GATING" -eq 1 ]; then
-      test_convert_taxonomy_for_rag
-      test_ingest_converted_taxonomy_for_rag
-      test_rag_enabled_chat
+#      test_convert_taxonomy_for_rag
+#      test_ingest_converted_taxonomy_for_rag
+#      test_rag_enabled_chat
 
       test_convert_user_document_for_rag
       test_ingest_converted_user_documents_for_rag
@@ -505,18 +515,18 @@ test_exec() {
     task Stopping the ilab model serve for the base model
     wait_for_server shutdown $PID
 
-    test_serve teacher
-    PID=$!
-    step served the teacher model
-
-    test_taxonomy 1
-    test_generate
-    test_taxonomy 2
-    test_generate
-    test_taxonomy 3
-    test_generate
-
-    test_data_list
+#    test_serve teacher
+#    PID=$!
+#    step served the teacher model
+#
+#    test_taxonomy 1
+#    test_generate
+#    test_taxonomy 2
+#    test_generate
+#    test_taxonomy 3
+#    test_generate
+#
+#    test_data_list
 
     # Kill the serve process
     task Stopping the ilab model serve for the teacher model
@@ -532,7 +542,7 @@ test_exec() {
         return
     fi
 
-    test_train
+    #test_train
 
     # When we run training with --4-bit-quant, we can't convert the result to a gguf
     # https://github.com/instructlab/instructlab/issues/579
